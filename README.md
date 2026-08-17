@@ -149,6 +149,15 @@ allowlists and cross-service URLs that already default to the matching
 `KUVERT_URL` and `TAFEL_URL` directly to its trusted notification-action
 origins, so each app has one canonical public URL.
 
+`GLOCKE_ALLOWED_ORIGINS` must contain the six exact public frontend origins:
+Schloss, Schlussel, Kuvert, Tafel, Zettel, and Glocke. `GLOCKE_URL` is the
+public HTTPS URL compiled into the Schloss, Schlussel, Kuvert, Tafel, and
+Zettel browser builds. It must be an HTTPS origin only, without credentials,
+a path, query, or fragment. Do not set it to an internal Compose URL: producer
+delivery uses `GLOCKE_BASE_URL`, while Schlussel export dispatch uses
+`GLOCKE_EXPORT_URL`. Rebuild those frontend images after changing the public
+URL.
+
 ## License
 
 AGPL-3.0 — see [LICENSE](LICENSE).

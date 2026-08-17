@@ -18,10 +18,25 @@ unset GLOCKE_TO_SCHLUSSEL_HMAC_SECRET
 unset KUVERT_TO_GLOCKE_HMAC_SECRET
 unset TAFEL_TO_GLOCKE_HMAC_SECRET
 unset ZETTEL_TO_GLOCKE_HMAC_SECRET
+unset GLOCKE_URL
+
+GLOCKE_URL=
+while IFS='=' read -r name value; do
+	if [ "$name" = GLOCKE_URL ]; then
+		GLOCKE_URL=$value
+	fi
+done <"$ENV_FILE"
+
+if [ -z "$GLOCKE_URL" ]; then
+	printf 'GLOCKE_URL is missing from %s\n' "$ENV_FILE" >&2
+	exit 1
+fi
+
+node "$(dirname "$0")/validate-public-origin.mjs" "$GLOCKE_URL"
 
 docker compose --env-file "$ENV_FILE" config --format json >"$CONFIG"
 
-jq -e '
+jq -e --arg glocke_url "$GLOCKE_URL" '
   .services as $services
   | [
       $services.schlussel.environment.SCHLUSSEL_TO_GLOCKE_HMAC_SECRET,
@@ -56,6 +71,22 @@ jq -e '
   and ($services."zettel-backend".environment.ZETTEL_TO_GLOCKE_HMAC_SECRET == $services."glocke-backend".environment.GLOCKE_SOURCE_SECRET_ZETTEL)
   and ($services.schlussel.environment.GLOCKE_TO_SCHLUSSEL_HMAC_KEY_ID == $services."glocke-backend".environment.GLOCKE_TO_SCHLUSSEL_HMAC_KEY_ID)
   and ($services.schlussel.environment.GLOCKE_TO_SCHLUSSEL_HMAC_SECRET == $services."glocke-backend".environment.GLOCKE_TO_SCHLUSSEL_HMAC_SECRET)
+  and ($services."glocke-backend".environment.ALLOWED_ORIGINS == ([
+    $services."glocke-frontend".build.args.VITE_SCHLOSS_URL,
+    $services."glocke-frontend".build.args.VITE_SCHLUSSEL_URL,
+    $services.schloss.build.args.VITE_KUVERT_URL,
+    $services.schloss.build.args.VITE_TAFEL_URL,
+    $services.schloss.build.args.VITE_ZETTEL_URL,
+    $services.schloss.build.args.VITE_GLOCKE_URL
+  ] | join(",")))
+  and ([
+    $services.schloss.build.args.VITE_GLOCKE_URL,
+    $services."schlussel-frontend".build.args.VITE_GLOCKE_URL,
+    $services."kuvert-frontend".build.args.VITE_GLOCKE_URL,
+    $services."tafel-frontend".build.args.VITE_GLOCKE_URL,
+    $services."zettel-frontend".build.args.VITE_GLOCKE_URL
+  ] as $browser_glocke_urls
+  | $browser_glocke_urls | all(. == $glocke_url))
   and ($services.schloss.build.args.VITE_KUVERT_URL == $services."glocke-backend".environment.KUVERT_ORIGIN)
   and ($services.schloss.build.args.VITE_TAFEL_URL == $services."glocke-backend".environment.TAFEL_ORIGIN)
 ' "$CONFIG" >/dev/null
