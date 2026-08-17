@@ -58,6 +58,10 @@ jobs:
       - name: Test gateway routing and unknown hosts
         run: sh tor/test/validate-gateway.sh
 
+      - name: Test public origin validation
+        working-directory: tor
+        run: node test/validate-public-origin.mjs --self-test
+
       - name: Validate local example Compose configuration
         working-directory: tor
         run: sh test/validate-compose.sh .env.example
@@ -66,6 +70,8 @@ jobs:
         working-directory: tor
         run: sh test/validate-compose.sh .env.production.example
 
-      - name: Build Glocke images
+      - name: Build notification-enabled frontend and Glocke images
         working-directory: tor
-        run: docker compose build glocke-backend glocke-frontend
+        run: >
+          docker compose build schloss schlussel-frontend kuvert-frontend
+          tafel-frontend zettel-frontend glocke-backend glocke-frontend

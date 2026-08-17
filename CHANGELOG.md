@@ -102,6 +102,11 @@ fit best; add a new section if none fits.
   directly to Glocke's trusted action origins, and CI validates both fully
   resolved example environments and their directional credential mappings
   without real secrets.
+- Expanded Glocke's CORS configuration to all six exact Hof frontend origins
+  and propagated the canonical public `GLOCKE_URL` into the Schloss,
+  Schlussel, Kuvert, Tafel, and Zettel browser builds. Compose validation now
+  rejects missing, divergent, malformed, non-HTTPS, or internal Glocke browser
+  URLs, and CI builds every notification-enabled frontend image.
 
 ## Docs
 - Repo slug renamed to lowercase for consistency with the other Hof
