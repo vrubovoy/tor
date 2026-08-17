@@ -49,8 +49,8 @@ checkouts come from cloning [`Hof`](https://github.com/zudaR107/Hof) with
 ```sh
 docker network create schloss-net   # one-time
 cp .env.example .env
-# Generate two different values with `openssl rand -base64 32` and replace
-# the two Glocke HMAC secret placeholders in .env.
+# Run `openssl rand -base64 32` five times and replace each Glocke HMAC
+# secret placeholder with a different generated value.
 docker compose up -d --build
 ```
 
@@ -120,13 +120,16 @@ running, same as before tor existed).
 
 ## Production
 
-Set `DOMAIN` to a real domain you control, and point its DNS (plus
+Replace `example.com` throughout `.env.production.example` with a real domain
+you control, and point its DNS (plus
 `auth.<domain>`, `kuvert.<domain>`, `tafel.<domain>`, `zettel.<domain>`, and
 `glocke.<domain>`) at this host - see `.env.production.example` for a
 filled-in starting point:
 
 ```sh
-cp .env.production.example .env   # then edit DOMAIN to your real domain
+cp .env.production.example .env
+# Replace example.com throughout, then replace all five HMAC secret
+# placeholders with independently generated values before startup.
 docker compose up -d --build
 ```
 
@@ -142,7 +145,9 @@ See `.env.example` — one file covers every variable needed by any of the
 six included app Compose files, since `include:` shares one Compose project
 environment. The important one is `DOMAIN`; the rest are origin/CORS
 allowlists and cross-service URLs that already default to the matching
-`*.localhost` subdomain scheme.
+`*.localhost` subdomain scheme. The included Glocke Compose service maps
+`KUVERT_URL` and `TAFEL_URL` directly to its trusted notification-action
+origins, so each app has one canonical public URL.
 
 ## License
 

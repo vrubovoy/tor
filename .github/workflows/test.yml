@@ -58,9 +58,13 @@ jobs:
       - name: Test gateway routing and unknown hosts
         run: sh tor/test/validate-gateway.sh
 
-      - name: Validate docker-compose.yml against sibling checkouts
+      - name: Validate local example Compose configuration
         working-directory: tor
-        run: docker compose config >/dev/null
+        run: sh test/validate-compose.sh .env.example
+
+      - name: Validate production example Compose configuration
+        working-directory: tor
+        run: sh test/validate-compose.sh .env.production.example
 
       - name: Build Glocke images
         working-directory: tor
