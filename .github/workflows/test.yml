@@ -23,26 +23,31 @@ jobs:
         with:
           repository: zudaR107/schlussel
           path: schlussel
+          submodules: recursive
 
       - uses: actions/checkout@v7
         with:
           repository: zudaR107/schloss
           path: schloss
+          submodules: recursive
 
       - uses: actions/checkout@v7
         with:
           repository: zudaR107/kuvert
           path: kuvert
+          submodules: recursive
 
       - uses: actions/checkout@v7
         with:
           repository: zudaR107/tafel
           path: tafel
+          submodules: recursive
 
       - uses: actions/checkout@v7
         with:
           repository: zudaR107/zettel
           path: zettel
+          submodules: recursive
 
       - uses: actions/checkout@v7
         with:
