@@ -96,6 +96,12 @@ fit best; add a new section if none fits.
   `glocke.{$DOMAIN}` route, sibling Compose include, CI checkout and image
   build checks, explicit route coverage, and local/production environment
   examples. Tor now fronts six app sites.
+- Completed Glocke's production producer configuration with four independently
+  pinned producer credentials plus its separate Schlüssel lookup credential.
+  The included Compose project maps the existing Kuvert/Tafel launcher URLs
+  directly to Glocke's trusted action origins, and CI validates both fully
+  resolved example environments and their directional credential mappings
+  without real secrets.
 
 ## Docs
 - Repo slug renamed to lowercase for consistency with the other Hof
