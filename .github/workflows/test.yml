@@ -14,6 +14,9 @@ jobs:
       KUVERT_TO_GLOCKE_HMAC_SECRET: ci-only-kuvert-producer-secret-at-least-32-bytes
       TAFEL_TO_GLOCKE_HMAC_SECRET: ci-only-tafel-producer-secret-at-least-32-bytes
       ZETTEL_TO_GLOCKE_HMAC_SECRET: ci-only-zettel-producer-secret-at-least-32-bytes
+      GLOCKE_VAPID_SUBJECT: mailto:push-ci@example.invalid
+      GLOCKE_VAPID_PUBLIC_KEY: BG4K7M8AHsPWw4WdwJLwXL0ELAxKM_WfdUsGfxgkaT7ZfAIN1MbsHhgk6HsfFoYXs34tS4Eeg2gxeYEHssNkyCE
+      GLOCKE_VAPID_PRIVATE_KEY: buJ8MeuiDFugpvAMEPf3vgV_bz3tlNVECD0MoMgryUw
     steps:
       - uses: actions/checkout@v7
         with:

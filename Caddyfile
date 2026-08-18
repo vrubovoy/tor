@@ -47,6 +47,15 @@ zettel.{$DOMAIN:localhost} {
 
 glocke.{$DOMAIN:localhost} {
 	import security_headers
+	# Browser Push service worker (see glocke/frontend/public/sw.js) -
+	# no-cache so browsers pick up an updated worker promptly, and an
+	# explicit JS content type independent of glocke-frontend's own static
+	# file server configuration. Matcher-scoped headers (not a nested
+	# `handle` block) so each compiles to its own route alongside the
+	# match, rather than a route wrapping a further subroute.
+	@sw path /sw.js
+	header @sw Content-Type "application/javascript; charset=utf-8"
+	header @sw Cache-Control "no-cache"
 	reverse_proxy glocke-frontend:80
 }
 
