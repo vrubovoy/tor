@@ -150,6 +150,14 @@ test_sw_js_route_headers() {
 		return 1
 	fi
 
+	# The header rewrite lives inside a `reverse_proxy` handler's own
+	# `header_down` config (`.headers.response.set`), not a standalone
+	# `headers` handler (`.response.set`) - `header_down` is the Caddy
+	# construct that actually replaces an upstream's already-set response
+	# header rather than appending a second value alongside it (reverse_proxy
+	# copies every upstream header via Add, so a plain `header` directive set
+	# beforehand ends up duplicated instead of replaced). Recurse into every
+	# descendant object with a "set" key so either shape matches.
 	jq -e '
 	  [
 	    .apps.http.servers[].routes[]
@@ -162,16 +170,18 @@ test_sw_js_route_headers() {
 	  | ($sw_routes | length > 0)
 	  and ([
 	    $sw_routes[]
-	    | .handle[]?
-	    | select(.handler == "headers")
-	    | .response.set["Cache-Control"][]?
+	    | ..
+	    | objects
+	    | select(has("set"))
+	    | .set["Cache-Control"][]?
 	    | select(test("(?i)no-cache"))
 	  ] | length > 0)
 	  and ([
 	    $sw_routes[]
-	    | .handle[]?
-	    | select(.handler == "headers")
-	    | .response.set["Content-Type"][]?
+	    | ..
+	    | objects
+	    | select(has("set"))
+	    | .set["Content-Type"][]?
 	    | select(test("(?i)javascript"))
 	  ] | length > 0)
 	' "$adapted" >/dev/null

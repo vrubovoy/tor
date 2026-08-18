@@ -53,9 +53,17 @@ glocke.{$DOMAIN:localhost} {
 	# file server configuration. Matcher-scoped headers (not a nested
 	# `handle` block) so each compiles to its own route alongside the
 	# match, rather than a route wrapping a further subroute.
+	# header_down (not a plain `header` directive) - it rewrites the
+	# response AFTER glocke-frontend's own static file server has already
+	# set its own Content-Type, replacing it rather than appending a
+	# second value (reverse_proxy copies every upstream header via Add,
+	# so a `header` directive set beforehand ends up duplicated instead
+	# of replaced).
 	@sw path /sw.js
-	header @sw Content-Type "application/javascript; charset=utf-8"
-	header @sw Cache-Control "no-cache"
+	reverse_proxy @sw glocke-frontend:80 {
+		header_down Content-Type "application/javascript; charset=utf-8"
+		header_down Cache-Control "no-cache"
+	}
 	reverse_proxy glocke-frontend:80
 }
 
