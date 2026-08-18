@@ -122,6 +122,88 @@ test_upstreams() {
 	esac
 }
 
+adapt_caddyfile() {
+	# Static config-only check: adapts the Caddyfile the same way
+	# test_upstreams already does (no running upstream, --network none) - it
+	# does not start Caddy or send it any request. That mirrors this
+	# script's existing static/no-running-stack idiom for anything that can
+	# be answered from config alone.
+	#
+	# What this CANNOT verify statically: the actual live HTTP response for
+	# /sw.js (real 404 vs the SPA's index.html fallback, and the MIME
+	# type/Cache-Control glocke-frontend itself ends up sending) - that
+	# depends on glocke-frontend's own static file server, which isn't
+	# running in this test. Per the Browser Push spec (issue #49), that
+	# live verification happens manually during the Compose-upgrade step in
+	# the rollout, not in CI.
+	out=$1
+	docker run --rm --network none \
+		--env DOMAIN=localhost \
+		--volume "$ROOT/Caddyfile:/etc/caddy/Caddyfile:ro" \
+		"$CADDY_IMAGE" caddy adapt \
+		--config /etc/caddy/Caddyfile --adapter caddyfile >"$out"
+}
+
+test_sw_js_route_headers() {
+	adapted="$TEST_TMPDIR/sw-adapted.json"
+	if ! adapt_caddyfile "$adapted"; then
+		return 1
+	fi
+
+	jq -e '
+	  [
+	    .apps.http.servers[].routes[]
+	    | select(.match[0].host[0]? == "glocke.localhost")
+	    | ..
+	    | objects
+	    | select(.match? and .handle?)
+	    | select(.match[]?.path[]? // "" | test("(?i)/sw\\.js$"))
+	  ] as $sw_routes
+	  | ($sw_routes | length > 0)
+	  and ([
+	    $sw_routes[]
+	    | .handle[]?
+	    | select(.handler == "headers")
+	    | .response.set["Cache-Control"][]?
+	    | select(test("(?i)no-cache"))
+	  ] | length > 0)
+	  and ([
+	    $sw_routes[]
+	    | .handle[]?
+	    | select(.handler == "headers")
+	    | .response.set["Content-Type"][]?
+	    | select(test("(?i)javascript"))
+	  ] | length > 0)
+	' "$adapted" >/dev/null
+}
+
+test_no_manifest_route() {
+	# iOS/PWA install is explicitly out of scope for this phase (see the
+	# Browser Push spec). This guards against accidentally shipping a
+	# manifest route/header alongside /sw.js before that phase is designed
+	# - a regression guard, not expected to ever go red on its own.
+	adapted="$TEST_TMPDIR/manifest-adapted.json"
+	if ! adapt_caddyfile "$adapted"; then
+		return 1
+	fi
+
+	if grep -qi 'manifest' "$ROOT/Caddyfile"; then
+		printf 'Caddyfile mentions "manifest" - iOS/PWA installability is out of scope for this phase\n' >&2
+		return 1
+	fi
+
+	jq -e '
+	  [
+	    .apps.http.servers[].routes[]
+	    | select(.match[0].host[0]? == "glocke.localhost")
+	    | ..
+	    | objects
+	    | select(.match? and .handle?)
+	    | select(.match[]?.path[]? // "" | test("(?i)manifest"))
+	  ] | length == 0
+	' "$adapted" >/dev/null
+}
+
 test_local_unknown_host() {
 	if ! start_caddy localhost; then
 		stop_caddy
@@ -251,6 +333,8 @@ run_test() {
 }
 
 run_test 'all app hosts use current Compose service upstreams' test_upstreams
+run_test '/sw.js gets a real-JS Content-Type and Cache-Control: no-cache' test_sw_js_route_headers
+run_test 'no manifest.json/webmanifest route exists yet (iOS/PWA out of scope)' test_no_manifest_route
 run_test 'unknown *.localhost hosts redirect locally' test_local_unknown_host
 run_test 'unknown production hosts do not receive internal certificates' test_production_unknown_host
 
