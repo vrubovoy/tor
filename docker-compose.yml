@@ -4,10 +4,10 @@
 # Starts the entire platform from here: this file pulls in each sibling
 # repo's own docker-compose.yml via `include:` (paths are relative to this
 # file, assuming the standard layout where schlussel/, schloss/, kuvert/,
-# tafel/, zettel/, glocke/, and tor/ are sibling directories) and fronts all six apps
-# with a single Caddy gateway that routes by subdomain - nothing else needs a
-# published host port. Each repo's own compose file still works standalone
-# for isolated single-app development.
+# tafel/, zettel/, glocke/, schrank/, and tor/ are sibling directories) and
+# fronts all seven apps with a single Caddy gateway that routes by
+# subdomain - nothing else needs a published host port. Each repo's own
+# compose file still works standalone for isolated single-app development.
 include:
   - path: ../schlussel/docker-compose.yml
   - path: ../schloss/docker-compose.yml
@@ -15,6 +15,7 @@ include:
   - path: ../tafel/docker-compose.yml
   - path: ../zettel/docker-compose.yml
   - path: ../glocke/docker-compose.yml
+  - path: ../schrank/docker-compose.yml
 
 services:
   gateway:
