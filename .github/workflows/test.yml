@@ -58,6 +58,12 @@ jobs:
           path: glocke
           submodules: recursive
 
+      - uses: actions/checkout@v7
+        with:
+          repository: zudaR107/schrank
+          path: schrank
+          submodules: recursive
+
       - name: Validate Caddyfile
         run: >
           docker run --rm -v "$PWD/tor/Caddyfile:/etc/caddy/Caddyfile:ro"
@@ -83,3 +89,7 @@ jobs:
         run: >
           docker compose build schloss schlussel-frontend kuvert-frontend
           tafel-frontend zettel-frontend glocke-backend glocke-frontend
+
+      - name: Build Schrank images
+        working-directory: tor
+        run: docker compose build schrank-backend schrank-frontend
