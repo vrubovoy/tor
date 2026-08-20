@@ -115,14 +115,16 @@ jq -e --arg glocke_url "$GLOCKE_URL" \
     $services.schloss.build.args.VITE_KUVERT_URL,
     $services.schloss.build.args.VITE_TAFEL_URL,
     $services.schloss.build.args.VITE_ZETTEL_URL,
-    $services.schloss.build.args.VITE_GLOCKE_URL
+    $services.schloss.build.args.VITE_GLOCKE_URL,
+    $services.schloss.build.args.VITE_SCHRANK_URL
   ] | join(",")))
   and ([
     $services.schloss.build.args.VITE_GLOCKE_URL,
     $services."schlussel-frontend".build.args.VITE_GLOCKE_URL,
     $services."kuvert-frontend".build.args.VITE_GLOCKE_URL,
     $services."tafel-frontend".build.args.VITE_GLOCKE_URL,
-    $services."zettel-frontend".build.args.VITE_GLOCKE_URL
+    $services."zettel-frontend".build.args.VITE_GLOCKE_URL,
+    $services."schrank-frontend".build.args.VITE_GLOCKE_URL
   ] as $browser_glocke_urls
   | $browser_glocke_urls | all(. == $glocke_url))
   and ($services.schloss.build.args.VITE_KUVERT_URL == $services."glocke-backend".environment.KUVERT_ORIGIN)
