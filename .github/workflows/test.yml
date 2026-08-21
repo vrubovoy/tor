@@ -17,6 +17,7 @@ jobs:
       GLOCKE_VAPID_SUBJECT: mailto:push-ci@example.invalid
       GLOCKE_VAPID_PUBLIC_KEY: BG4K7M8AHsPWw4WdwJLwXL0ELAxKM_WfdUsGfxgkaT7ZfAIN1MbsHhgk6HsfFoYXs34tS4Eeg2gxeYEHssNkyCE
       GLOCKE_VAPID_PRIVATE_KEY: buJ8MeuiDFugpvAMEPf3vgV_bz3tlNVECD0MoMgryUw
+      HEROLD_CREDENTIAL_ENCRYPTION_KEY: ci-only-herold-credential-key-at-least-32-bytes
     steps:
       - uses: actions/checkout@v7
         with:
