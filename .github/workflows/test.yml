@@ -71,6 +71,16 @@ jobs:
           path: herold
           submodules: recursive
 
+      # vrubovoy, not zudaR107 - wachter was created fresh after the
+      # account rename, so there's no zudaR107/wachter to redirect from
+      # (unlike every checkout above, all of which predate the rename
+      # and still resolve through GitHub's own username redirect).
+      - uses: actions/checkout@v7
+        with:
+          repository: vrubovoy/wachter
+          path: wachter
+          submodules: recursive
+
       - name: Validate Caddyfile
         run: >
           docker run --rm -v "$PWD/tor/Caddyfile:/etc/caddy/Caddyfile:ro"
@@ -104,3 +114,7 @@ jobs:
       - name: Build Herold images
         working-directory: tor
         run: docker compose build herold-backend herold-frontend
+
+      - name: Build Wächter image
+        working-directory: tor
+        run: docker compose build wachter
