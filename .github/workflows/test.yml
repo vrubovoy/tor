@@ -64,6 +64,12 @@ jobs:
           path: schrank
           submodules: recursive
 
+      - uses: actions/checkout@v7
+        with:
+          repository: zudaR107/herold
+          path: herold
+          submodules: recursive
+
       - name: Validate Caddyfile
         run: >
           docker run --rm -v "$PWD/tor/Caddyfile:/etc/caddy/Caddyfile:ro"
@@ -93,3 +99,7 @@ jobs:
       - name: Build Schrank images
         working-directory: tor
         run: docker compose build schrank-backend schrank-frontend
+
+      - name: Build Herold images
+        working-directory: tor
+        run: docker compose build herold-backend herold-frontend

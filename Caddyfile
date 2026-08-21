@@ -72,6 +72,11 @@ schrank.{$DOMAIN:localhost} {
 	reverse_proxy schrank-frontend:80
 }
 
+herold.{$DOMAIN:localhost} {
+	import security_headers
+	reverse_proxy herold-frontend:80
+}
+
 # Bound to loopback only. Caddy's on_demand_tls policy calls this to decide
 # whether an unrecognized SNI may receive a local-development certificate.
 http://127.0.0.1:9080 {
