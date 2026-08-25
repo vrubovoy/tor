@@ -7,7 +7,7 @@
 	}
 }
 
-# Baseline hardening headers, shared by the six app sites below (not
+# Baseline hardening headers, shared by the eight app sites below (not
 # the unknown-host fallback). None of these apps expect to
 # be embedded in another site, so frame-ancestors is 'none' rather than
 # 'self'.

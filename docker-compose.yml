@@ -35,8 +35,89 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
+    labels:
+      hof.wachter.critical: "true"
     networks:
       - schloss-net
+
+  # Tor owns the whole-platform restart policy. Data-bearing and control-plane
+  # containers are protected; only stateless frontends can be restarted from
+  # Wächter. Every restartable service also has an explicit critical=false so
+  # the agent's deny-wins rule remains visible in the resolved configuration.
+  schloss:
+    labels:
+      hof.wachter.critical: "true"
+
+  schlussel:
+    labels:
+      hof.wachter.critical: "true"
+
+  schlussel-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  kuvert-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  kuvert-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  tafel-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  tafel-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  zettel-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  zettel-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  glocke-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  glocke-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  schrank-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  schrank-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  herold-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  herold-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"
+
+  wachter:
+    labels:
+      hof.wachter.critical: "true"
+
+  wachter-agent:
+    labels:
+      hof.wachter.critical: "true"
 
 volumes:
   caddy-data:

@@ -9,13 +9,21 @@
 #     produces a valid Compose config - same graceful-noop contract already
 #     relied on for the producer HMAC vars today
 #   - the CI workflow's own env: block carries a fixed, non-empty,
-#     CI-only VAPID keypair, not the example placeholder text
+#     CI-only VAPID keypair while both committed examples remain disabled
 #
 # Follows validate-gateway.sh's run_test/tally convention since, like that
 # script and unlike validate-compose.sh, this file checks several
 # independent things in one run.
 
 set -u
+
+# Synthetic variants must win even when CI's job-level environment carries a
+# real-shaped fixed keypair for the workflow-literal validation below.
+unset GLOCKE_BROWSER_PUSH_ENABLED
+unset GLOCKE_VAPID_SUBJECT
+unset GLOCKE_VAPID_PUBLIC_KEY
+unset GLOCKE_VAPID_PRIVATE_KEY
+unset GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BASE_ENV="$ROOT/.env.example"
@@ -61,19 +69,18 @@ test_enabled_mode() {
 	  and $services."glocke-backend".environment.GLOCKE_VAPID_PUBLIC_KEY == "test-fixture-vapid-public-key"
 	  and $services."glocke-backend".environment.GLOCKE_VAPID_PRIVATE_KEY == "test-fixture-vapid-private-key"
 	  and $services."glocke-backend".environment.GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS == "fcm.googleapis.com,updates.push.services.mozilla.com,web.push.apple.com"
-	  and ([
-	    $services[]
-	    | select(.build.args? != null)
-	    | .build.args
-	    | to_entries[]
-	    | select(
-	        (.value == "test-fixture-vapid-private-key")
-	        or (.value == "test-fixture-vapid-public-key")
-	        or (.key | test("VAPID"))
-	      )
-	  ] | length == 0)
+	  and (["schloss", "schlussel-frontend", "kuvert-frontend", "tafel-frontend", "zettel-frontend", "glocke-frontend", "schrank-frontend", "herold-frontend"]
+	    | all(. as $frontend
+	      | [ $services[$frontend] | .. | strings
+	          | select(. == "test-fixture-vapid-private-key" or . == "test-fixture-vapid-public-key") ]
+	        | length == 0))
+	  and (["schloss", "schlussel-frontend", "kuvert-frontend", "tafel-frontend", "zettel-frontend", "glocke-frontend", "schrank-frontend", "herold-frontend"]
+	    | all(. as $frontend
+	      | [ $services[$frontend] | .. | objects | keys[]
+	          | select(test("VAPID|BROWSER_PUSH|PUSH_ALLOWED")) ]
+	        | length == 0))
 	' "$config" >/dev/null; then
-		printf 'glocke-backend environment does not carry the enabled-mode Browser Push vars, or they leaked into a frontend build args block\n' >&2
+		printf 'glocke-backend environment does not carry the enabled-mode Browser Push vars, or they leaked into frontend config\n' >&2
 		return 1
 	fi
 }
@@ -183,7 +190,7 @@ run_test() {
 	fi
 }
 
-run_test 'enabled-mode Browser Push config reaches glocke-backend and never leaks into frontend build args' test_enabled_mode
+run_test 'enabled-mode Browser Push config reaches glocke-backend and never leaks into frontend config' test_enabled_mode
 run_test 'disabled-mode Browser Push config (flag false, VAPID vars blank) still validates' test_disabled_mode
 run_test 'CI workflow env: block carries a fixed, non-empty, CI-only VAPID keypair' test_ci_workflow_keypair
 

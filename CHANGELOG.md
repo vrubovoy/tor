@@ -107,6 +107,16 @@ fit best; add a new section if none fits.
   Schlussel, Kuvert, Tafel, and Zettel browser builds. Compose validation now
   rejects missing, divergent, malformed, non-HTTPS, or internal Glocke browser
   URLs, and CI builds every notification-enabled frontend image.
+- Hardened the current whole-platform deployment contract: integrated
+  Wächter's authenticated private Docker agent, internal network, and explicit
+  restart/critical labels; pinned Schlussel's six export and six account
+  deletion targets, including Schrank and Herold; and added exact Compose and
+  Schloss-to-Wächter proxy assertions.
+- Changed both Browser Push examples to the safe disabled state with blank
+  VAPID values. Added separate generation, stability, rotation, and provider
+  allowlist guidance, CI coverage for enabled/disabled modes, frontend secret
+  non-disclosure assertions, and a built-container `/sw.js` smoke test through
+  the real gateway for body, MIME, cache, and `nosniff` behavior.
 
 ## Docs
 - Repo slug renamed to lowercase for consistency with the other Hof
@@ -125,3 +135,5 @@ fit best; add a new section if none fits.
   wiped volume produced a `SEC_ERROR_BAD_SIGNATURE` instead of the usual
   unknown-issuer warning). Fixed the README's example URLs from `http://` to
   `https://` to match Caddy's actual automatic upgrade behavior.
+- Updated current routes, DNS names, service counts, environment ownership,
+  account-deletion requirements, and Wächter security boundaries.
