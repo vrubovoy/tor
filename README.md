@@ -57,16 +57,17 @@ sibling directories. All sibling checkouts come from cloning
 ```sh
 docker network create schloss-net   # one-time
 cp .env.example .env
-# Run `openssl rand -base64 32` five times and replace each Glocke HMAC
-# secret placeholder with a different generated value.
+# Generate independent values for the five Glocke HMAC secrets, two
+# Zettel/Schrank sync secrets, Herold encryption key, and Wächter agent token.
 docker compose up -d --build
 ```
 
 That's it — this one command starts all eight apps, Wächter, and the
 gateway, via `include:` pulling in each sibling repo's own
-`docker-compose.yml`. In Compose terms that is sixteen application
+`docker-compose.yml`. In Compose terms that is seventeen application
 services plus `gateway`: seven apps have separate backend and frontend
-services, Schloss is frontend-only, and Wächter is backend-only.
+services, Schloss is frontend-only, and Wächter has an API plus a private
+Docker agent.
 
 - `https://localhost` — Schloss (home)
 - `https://auth.localhost` — Schlüssel (login/register)
@@ -134,13 +135,14 @@ running, same as before tor existed).
 Replace `example.com` throughout `.env.production.example` with a real domain
 you control, and point its DNS (plus
 `auth.<domain>`, `kuvert.<domain>`, `tafel.<domain>`, `zettel.<domain>`, and
-`glocke.<domain>`) at this host - see `.env.production.example` for a
+`glocke.<domain>`, `schrank.<domain>`, and `herold.<domain>`) at this host -
+see `.env.production.example` for a
 filled-in starting point:
 
 ```sh
 cp .env.production.example .env
-# Replace example.com throughout, then replace all five HMAC secret
-# placeholders with independently generated values before startup.
+# Replace example.com throughout and generate every secret independently
+# before startup.
 docker compose up -d --build
 ```
 
@@ -170,6 +172,48 @@ a path, query, or fragment. Do not set it to an internal Compose URL: producer
 delivery uses `GLOCKE_BASE_URL`, while Schlussel export dispatch uses
 `GLOCKE_EXPORT_URL`. Rebuild those frontend images after changing the public
 URL.
+
+Schlussel's six `*_EXPORT_URL` and six `*_DELETION_URL` values are a fixed,
+deployment-owned registry. Keep them on `schloss-net` with their exact
+`http://<service>:<port>/...` values from the examples. In particular,
+Schrank and Herold export through `schrank-backend:3005/exports/me` and
+`herold-backend:3006/exports/me`. Account-deletion consumers verify
+Schlussel's short-lived service-scoped token using the internal JWKS URL and
+the `schlussel` issuer; deploy all consumer migrations before deleting an
+account. The examples also pin the dispatcher interval, lease, request
+timeout, graceful-stop bound, attempt limit, and retry bounds; keep the fetch
+timeout shorter than the lease when tuning them.
+
+Wächter is split across `wachter` and `wachter-agent`. The API shares
+`schloss-net` with Schloss and reaches the agent over the internal-only
+`wachter-internal` network. Only the agent mounts the Docker socket, and both
+containers require the same independently generated `WACHTER_AGENT_TOKEN`.
+Tor's resolved Compose policy marks data-bearing, gateway, identity, and
+monitoring containers `hof.wachter.critical=true`. Only stateless frontend
+containers are `hof.wachter.restartable=true`, each with an explicit
+`hof.wachter.critical=false`; the agent always treats critical as a denial.
+
+### Enabling Browser Push
+
+Both committed environment examples intentionally start with Browser Push
+disabled and blank VAPID values. To opt in:
+
+1. Generate one keypair with `npx web-push generate-vapid-keys` and store it
+   in the deployment secret store. Do not regenerate it during deploys.
+2. Set `GLOCKE_VAPID_SUBJECT` to a monitored `mailto:` or HTTPS contact,
+   populate the generated public/private keys, and set
+   `GLOCKE_BROWSER_PUSH_ENABLED=true`.
+3. Set `GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS` to the smallest stable set of
+   push providers actually needed. Exact entries match one host; a leading
+   dot is an intentional suffix match, for example `.notify.windows.com`.
+4. Recreate `glocke-backend`. The frontend obtains only the public key from
+   its runtime status endpoint; no VAPID variable is a frontend build arg.
+
+Keep a VAPID keypair stable for the life of existing subscriptions. Rotation
+invalidates those subscriptions: deploy the replacement pair once, expect
+clients to re-subscribe, and remove the old private key rather than retaining
+multiple long-lived signing keys. Review the provider allowlist separately;
+never add arbitrary domains to work around a rejected endpoint.
 
 ## License
 

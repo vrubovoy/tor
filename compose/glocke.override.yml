@@ -1,0 +1,9 @@
+services:
+  glocke-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  glocke-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"

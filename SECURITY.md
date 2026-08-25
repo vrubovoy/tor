@@ -24,4 +24,7 @@ tor terminates TLS and routes every request for the whole platform, so
 misconfiguration here has platform-wide impact. In scope: anything in the
 Caddyfile that could expose a service's internal port, route traffic to
 the wrong backend, downgrade or misconfigure TLS (weak ciphers, missing
-auto-HTTPS), or otherwise bypass the single-entry-point design.
+auto-HTTPS), leak VAPID private material into a frontend, widen a Browser
+Push endpoint allowlist, expose Wächter's Docker agent outside its internal
+network, bypass restart labels, or otherwise bypass the single-entry-point
+design.

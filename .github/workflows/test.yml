@@ -14,6 +14,7 @@ jobs:
       KUVERT_TO_GLOCKE_HMAC_SECRET: ci-only-kuvert-producer-secret-at-least-32-bytes
       TAFEL_TO_GLOCKE_HMAC_SECRET: ci-only-tafel-producer-secret-at-least-32-bytes
       ZETTEL_TO_GLOCKE_HMAC_SECRET: ci-only-zettel-producer-secret-at-least-32-bytes
+      WACHTER_AGENT_TOKEN: ci-only-wachter-agent-token-at-least-32-bytes
       GLOCKE_VAPID_SUBJECT: mailto:push-ci@example.invalid
       GLOCKE_VAPID_PUBLIC_KEY: BG4K7M8AHsPWw4WdwJLwXL0ELAxKM_WfdUsGfxgkaT7ZfAIN1MbsHhgk6HsfFoYXs34tS4Eeg2gxeYEHssNkyCE
       GLOCKE_VAPID_PRIVATE_KEY: buJ8MeuiDFugpvAMEPf3vgV_bz3tlNVECD0MoMgryUw
@@ -101,11 +102,21 @@ jobs:
         working-directory: tor
         run: sh test/validate-compose.sh .env.production.example
 
+      - name: Test enabled and disabled Browser Push configuration
+        working-directory: tor
+        run: sh test/validate-push-config.sh
+
       - name: Build notification-enabled frontend and Glocke images
         working-directory: tor
         run: >
           docker compose build schloss schlussel-frontend kuvert-frontend
           tafel-frontend zettel-frontend glocke-backend glocke-frontend
+
+      - name: Build identity and account lifecycle images
+        working-directory: tor
+        run: >
+          docker compose build schlussel kuvert-backend tafel-backend
+          zettel-backend
 
       - name: Build Schrank images
         working-directory: tor
@@ -115,6 +126,10 @@ jobs:
         working-directory: tor
         run: docker compose build herold-backend herold-frontend
 
-      - name: Build Wächter image
+      - name: Build Wächter images
         working-directory: tor
-        run: docker compose build wachter
+        run: docker compose build wachter wachter-agent
+
+      - name: Smoke-test built service worker through gateway
+        working-directory: tor
+        run: sh test/validate-sw.sh

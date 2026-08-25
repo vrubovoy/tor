@@ -1,0 +1,9 @@
+services:
+  schlussel:
+    labels:
+      hof.wachter.critical: "true"
+
+  schlussel-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"

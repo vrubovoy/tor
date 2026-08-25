@@ -1,0 +1,4 @@
+services:
+  schloss:
+    labels:
+      hof.wachter.critical: "true"

@@ -63,6 +63,7 @@ test_upstreams() {
 		return 1
 	fi
 	if ! docker compose --project-directory "$ROOT" \
+		--env-file "$ROOT/.env.example" \
 		--file "$ROOT/docker-compose.yml" config --format json \
 		>"$compose_config"; then
 		return 1
@@ -184,6 +185,33 @@ test_sw_js_route_headers() {
 	    | .set["Content-Type"][]?
 	    | select(test("(?i)javascript"))
 	  ] | length > 0)
+	' "$adapted" >/dev/null
+}
+
+test_schloss_wachter_proxy() {
+	adapted="$TEST_TMPDIR/schloss-adapted.json"
+	if ! docker run --rm --network none \
+		--volume "$ROOT/../schloss/Caddyfile:/etc/caddy/Caddyfile:ro" \
+		"$CADDY_IMAGE" caddy adapt \
+		--config /etc/caddy/Caddyfile --adapter caddyfile >"$adapted"; then
+		return 1
+	fi
+
+	# Schloss is the only browser entrypoint for Wächter. The prefix must be
+	# stripped exactly once before forwarding to the API's current service and
+	# port; a plain reverse_proxy would send paths Wächter does not expose.
+	jq -e '
+	  [
+	    .apps.http.servers[].routes[]
+	    | select(.match[]?.path[]? == "/wachter/*")
+	  ] as $routes
+	  | ($routes | length == 1)
+	  and ([$routes[] | .. | objects
+	    | select(.handler? == "rewrite")
+	    | .strip_path_prefix] == ["/wachter"])
+	  and ([$routes[] | .. | objects
+	    | select(.handler? == "reverse_proxy")
+	    | .upstreams[]?.dial] == ["wachter:3007"])
 	' "$adapted" >/dev/null
 }
 
@@ -344,6 +372,7 @@ run_test() {
 
 run_test 'all app hosts use current Compose service upstreams' test_upstreams
 run_test '/sw.js gets a real-JS Content-Type and Cache-Control: no-cache' test_sw_js_route_headers
+run_test 'Schloss strips /wachter and proxies exactly to wachter:3007' test_schloss_wachter_proxy
 run_test 'no manifest.json/webmanifest route exists yet (iOS/PWA out of scope)' test_no_manifest_route
 run_test 'unknown *.localhost hosts redirect locally' test_local_unknown_host
 run_test 'unknown production hosts do not receive internal certificates' test_production_unknown_host
