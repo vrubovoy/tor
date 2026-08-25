@@ -112,6 +112,10 @@ fit best; add a new section if none fits.
   restart/critical labels; pinned Schlussel's six export and six account
   deletion targets, including Schrank and Herold; and added exact Compose and
   Schloss-to-Wächter proxy assertions.
+- Added explicit `DOCKER_GID` provisioning for Wächter's non-root agent after
+  live deployment exposed that the fallback group differed from the host
+  socket owner. Example validation now requires a positive numeric GID and
+  verifies that only the private agent receives it through `group_add`.
 - Changed both Browser Push examples to the safe disabled state with blank
   VAPID values. Added separate generation, stability, rotation, and provider
   allowlist guidance, CI coverage for enabled/disabled modes, frontend secret

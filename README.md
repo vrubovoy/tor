@@ -59,6 +59,7 @@ docker network create schloss-net   # one-time
 cp .env.example .env
 # Generate independent values for the five Glocke HMAC secrets, two
 # Zettel/Schrank sync secrets, Herold encryption key, and Wächter agent token.
+# Set DOCKER_GID to: stat -c '%g' /var/run/docker.sock
 docker compose up -d --build
 ```
 
@@ -143,6 +144,7 @@ filled-in starting point:
 cp .env.production.example .env
 # Replace example.com throughout and generate every secret independently
 # before startup.
+# Set DOCKER_GID to: stat -c '%g' /var/run/docker.sock
 docker compose up -d --build
 ```
 
@@ -188,6 +190,10 @@ Wächter is split across `wachter` and `wachter-agent`. The API shares
 `schloss-net` with Schloss and reaches the agent over the internal-only
 `wachter-internal` network. Only the agent mounts the Docker socket, and both
 containers require the same independently generated `WACHTER_AGENT_TOKEN`.
+Set `DOCKER_GID` to the numeric group owner reported by
+`stat -c '%g' /var/run/docker.sock` on the deployment host. The non-root agent
+joins that supplemental group; leaving a mismatched example value causes
+Docker collection to fail with `EACCES` and keeps `/wachter/ready` at `503`.
 Tor's resolved Compose policy marks data-bearing, gateway, identity, and
 monitoring containers `hof.wachter.critical=true`. Only stateless frontend
 containers are `hof.wachter.restartable=true`, each with an explicit
