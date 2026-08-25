@@ -132,6 +132,4 @@ jobs:
 
       - name: Smoke-test built service worker through gateway
         working-directory: tor
-        env:
-          SKIP_BUILD: "1"
         run: sh test/validate-sw.sh

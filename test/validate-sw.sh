@@ -7,30 +7,20 @@ GLOCKE_ROOT=$(CDPATH= cd -- "$ROOT/../glocke" && pwd)
 NETWORK="tor-sw-test-$$"
 FRONTEND="tor-glocke-sw-test-$$"
 GATEWAY="tor-gateway-sw-test-$$"
+IMAGE="tor-glocke-sw-test:$$"
 TEST_TMPDIR=$(mktemp -d)
 
 cleanup() {
 	docker rm --force "$GATEWAY" "$FRONTEND" >/dev/null 2>&1 || true
 	docker network rm "$NETWORK" >/dev/null 2>&1 || true
+	docker image rm "$IMAGE" >/dev/null 2>&1 || true
 	rm -rf "$TEST_TMPDIR"
 }
 
 trap cleanup EXIT INT TERM
 
-if [ "${SKIP_BUILD:-}" != 1 ]; then
-	docker compose --env-file "$ROOT/.env.example" build glocke-frontend
-fi
-
-PROJECT=$(docker compose --env-file "$ROOT/.env.example" config --format json \
-	| jq -r .name)
-set -- $(docker image ls --quiet \
-	--filter "label=com.docker.compose.project=$PROJECT" \
-	--filter label=com.docker.compose.service=glocke-frontend)
-IMAGE=${1:-}
-if [ -z "$IMAGE" ]; then
-	printf 'No built glocke-frontend image is available\n' >&2
-	exit 1
-fi
+docker build --file "$GLOCKE_ROOT/frontend/Dockerfile" --tag "$IMAGE" \
+	"$GLOCKE_ROOT"
 
 docker network create "$NETWORK" >/dev/null
 docker run --detach --rm --name "$FRONTEND" --network "$NETWORK" \
