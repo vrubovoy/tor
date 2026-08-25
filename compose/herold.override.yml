@@ -1,0 +1,9 @@
+services:
+  herold-backend:
+    labels:
+      hof.wachter.critical: "true"
+
+  herold-frontend:
+    labels:
+      hof.wachter.restartable: "true"
+      hof.wachter.critical: "false"

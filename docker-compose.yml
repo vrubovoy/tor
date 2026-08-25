@@ -11,16 +11,35 @@
 # it's reached only via Schloss's own Caddyfile proxy (see wachter's own
 # README) - included here purely so `docker compose up` from this file
 # still starts it alongside everything else. Each repo's own compose
-# file still works standalone for isolated single-app development.
+# file still works standalone for isolated single-app development. Per-include
+# overrides apply Tor's whole-platform restart policy without conflicting with
+# imported service definitions: data/control services are protected, while
+# stateless frontends are explicitly restartable and non-critical.
 include:
-  - path: ../schlussel/docker-compose.yml
-  - path: ../schloss/docker-compose.yml
-  - path: ../kuvert/docker-compose.yml
-  - path: ../tafel/docker-compose.yml
-  - path: ../zettel/docker-compose.yml
-  - path: ../glocke/docker-compose.yml
-  - path: ../schrank/docker-compose.yml
-  - path: ../herold/docker-compose.yml
+  - path:
+      - ../schlussel/docker-compose.yml
+      - ./compose/schlussel.override.yml
+  - path:
+      - ../schloss/docker-compose.yml
+      - ./compose/schloss.override.yml
+  - path:
+      - ../kuvert/docker-compose.yml
+      - ./compose/kuvert.override.yml
+  - path:
+      - ../tafel/docker-compose.yml
+      - ./compose/tafel.override.yml
+  - path:
+      - ../zettel/docker-compose.yml
+      - ./compose/zettel.override.yml
+  - path:
+      - ../glocke/docker-compose.yml
+      - ./compose/glocke.override.yml
+  - path:
+      - ../schrank/docker-compose.yml
+      - ./compose/schrank.override.yml
+  - path:
+      - ../herold/docker-compose.yml
+      - ./compose/herold.override.yml
   - path: ../wachter/docker-compose.yml
 
 services:
@@ -39,85 +58,6 @@ services:
       hof.wachter.critical: "true"
     networks:
       - schloss-net
-
-  # Tor owns the whole-platform restart policy. Data-bearing and control-plane
-  # containers are protected; only stateless frontends can be restarted from
-  # Wächter. Every restartable service also has an explicit critical=false so
-  # the agent's deny-wins rule remains visible in the resolved configuration.
-  schloss:
-    labels:
-      hof.wachter.critical: "true"
-
-  schlussel:
-    labels:
-      hof.wachter.critical: "true"
-
-  schlussel-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  kuvert-backend:
-    labels:
-      hof.wachter.critical: "true"
-
-  kuvert-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  tafel-backend:
-    labels:
-      hof.wachter.critical: "true"
-
-  tafel-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  zettel-backend:
-    labels:
-      hof.wachter.critical: "true"
-
-  zettel-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  glocke-backend:
-    labels:
-      hof.wachter.critical: "true"
-
-  glocke-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  schrank-backend:
-    labels:
-      hof.wachter.critical: "true"
-
-  schrank-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  herold-backend:
-    labels:
-      hof.wachter.critical: "true"
-
-  herold-frontend:
-    labels:
-      hof.wachter.restartable: "true"
-      hof.wachter.critical: "false"
-
-  wachter:
-    labels:
-      hof.wachter.critical: "true"
-
-  wachter-agent:
-    labels:
-      hof.wachter.critical: "true"
 
 volumes:
   caddy-data:
