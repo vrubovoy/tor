@@ -37,17 +37,22 @@ Compose service on internal port `80`. The current routes are:
 | `tafel.{$DOMAIN}` | `tafel-frontend` |
 | `zettel.{$DOMAIN}` | `zettel-frontend` |
 | `glocke.{$DOMAIN}` | `glocke-frontend` |
+| `schrank.{$DOMAIN}` | `schrank-frontend` |
+| `herold.{$DOMAIN}` | `herold-frontend` |
 
 The API services (`schlussel`, `kuvert-backend`, `tafel-backend`,
-`zettel-backend`, and `glocke-backend`) remain internal dependencies and
-are not direct gateway targets.
+`zettel-backend`, `glocke-backend`, `schrank-backend`, and
+`herold-backend`) remain internal dependencies and are not direct
+gateway targets. `wachter` has no row here at all - it has no subdomain
+of its own; its data is reached through `schloss`'s own `/wachter/*`
+proxy instead (see its README for why).
 
 ## Running the whole platform
 
 Assumes the standard layout: `schlussel/`, `schloss/`, `kuvert/`, `tafel/`,
-`zettel/`, `glocke/`, and `tor/` as sibling directories. All sibling
-checkouts come from cloning [`Hof`](https://github.com/zudaR107/Hof) with
-`--recurse-submodules`.
+`zettel/`, `glocke/`, `schrank/`, `herold/`, `wachter/`, and `tor/` as
+sibling directories. All sibling checkouts come from cloning
+[`Hof`](https://github.com/zudaR107/Hof) with `--recurse-submodules`.
 
 ```sh
 docker network create schloss-net   # one-time
@@ -57,10 +62,11 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-That's it — this one command starts all six apps plus the gateway, via
-`include:` pulling in each sibling repo's own `docker-compose.yml`. In
-Compose terms that is eleven application services plus `gateway`, because
-five apps have separate backend and frontend services.
+That's it — this one command starts all eight apps, Wächter, and the
+gateway, via `include:` pulling in each sibling repo's own
+`docker-compose.yml`. In Compose terms that is sixteen application
+services plus `gateway`: seven apps have separate backend and frontend
+services, Schloss is frontend-only, and Wächter is backend-only.
 
 - `https://localhost` — Schloss (home)
 - `https://auth.localhost` — Schlüssel (login/register)
@@ -68,6 +74,8 @@ five apps have separate backend and frontend services.
 - `https://tafel.localhost` — Tafel
 - `https://zettel.localhost` — Zettel
 - `https://glocke.localhost` — Glocke
+- `https://schrank.localhost` — Schrank
+- `https://herold.localhost` — Herold
 
 `*.localhost` resolves to `127.0.0.1` automatically in every modern browser
 — no `/etc/hosts` editing needed. Caddy auto-upgrades these to HTTPS; since
@@ -145,17 +153,19 @@ certificate.
 ### Environment variables
 
 See `.env.example` — one file covers every variable needed by any of the
-six included app Compose files, since `include:` shares one Compose project
+nine included app Compose files, since `include:` shares one Compose project
 environment. The important one is `DOMAIN`; the rest are origin/CORS
 allowlists and cross-service URLs that already default to the matching
 `*.localhost` subdomain scheme. The included Glocke Compose service maps
 `KUVERT_URL` and `TAFEL_URL` directly to its trusted notification-action
 origins, so each app has one canonical public URL.
 
-`GLOCKE_ALLOWED_ORIGINS` must contain the six exact public frontend origins:
-Schloss, Schlussel, Kuvert, Tafel, Zettel, and Glocke. `GLOCKE_URL` is the
-public HTTPS URL compiled into the Schloss, Schlussel, Kuvert, Tafel, and
-Zettel browser builds. It must be an HTTPS origin only, without credentials,
+`GLOCKE_ALLOWED_ORIGINS` must contain the eight exact public frontend
+origins: Schloss, Schlussel, Kuvert, Tafel, Zettel, Glocke, Schrank, and
+Herold. `GLOCKE_URL` is the public HTTPS URL compiled into the Schloss,
+Schlussel, Kuvert, Tafel, Zettel, Schrank, and Herold browser builds
+(Wächter has no browser build of its own to compile it into). It must
+be an HTTPS origin only, without credentials,
 a path, query, or fragment. Do not set it to an internal Compose URL: producer
 delivery uses `GLOCKE_BASE_URL`, while Schlussel export dispatch uses
 `GLOCKE_EXPORT_URL`. Rebuild those frontend images after changing the public
