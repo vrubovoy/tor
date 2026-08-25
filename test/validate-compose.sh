@@ -19,6 +19,7 @@ unset KUVERT_TO_GLOCKE_HMAC_SECRET
 unset TAFEL_TO_GLOCKE_HMAC_SECRET
 unset ZETTEL_TO_GLOCKE_HMAC_SECRET
 unset WACHTER_AGENT_TOKEN
+unset DOCKER_GID
 unset GLOCKE_URL
 unset GLOCKE_BROWSER_PUSH_ENABLED
 unset GLOCKE_VAPID_SUBJECT
@@ -32,6 +33,7 @@ GLOCKE_VAPID_SUBJECT=
 GLOCKE_VAPID_PUBLIC_KEY=
 GLOCKE_VAPID_PRIVATE_KEY=
 GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS=
+DOCKER_GID=
 while IFS='=' read -r name value; do
 	case "$name" in
 	GLOCKE_URL) GLOCKE_URL=$value ;;
@@ -40,11 +42,24 @@ while IFS='=' read -r name value; do
 	GLOCKE_VAPID_PUBLIC_KEY) GLOCKE_VAPID_PUBLIC_KEY=$value ;;
 	GLOCKE_VAPID_PRIVATE_KEY) GLOCKE_VAPID_PRIVATE_KEY=$value ;;
 	GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS) GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS=$value ;;
+	DOCKER_GID) DOCKER_GID=$value ;;
 	esac
 done <"$ENV_FILE"
 
 if [ -z "$GLOCKE_URL" ]; then
 	printf 'GLOCKE_URL is missing from %s\n' "$ENV_FILE" >&2
+	exit 1
+fi
+
+case "$DOCKER_GID" in
+'' | *[!0-9]*)
+	printf 'DOCKER_GID must be a positive numeric group ID in %s\n' "$ENV_FILE" >&2
+	exit 1
+	;;
+esac
+
+if [ "$DOCKER_GID" -le 0 ]; then
+	printf 'DOCKER_GID must be greater than zero in %s\n' "$ENV_FILE" >&2
 	exit 1
 fi
 
@@ -71,7 +86,8 @@ jq -e --arg glocke_url "$GLOCKE_URL" \
   --arg vapid_subject "$GLOCKE_VAPID_SUBJECT" \
   --arg vapid_public "$GLOCKE_VAPID_PUBLIC_KEY" \
   --arg vapid_private "$GLOCKE_VAPID_PRIVATE_KEY" \
-  --arg vapid_hosts "$GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS" '
+  --arg vapid_hosts "$GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS" \
+  --arg docker_gid "$DOCKER_GID" '
   .services as $services
   | [
       $services.schlussel.environment.SCHLUSSEL_TO_GLOCKE_HMAC_SECRET,
@@ -186,6 +202,8 @@ jq -e --arg glocke_url "$GLOCKE_URL" \
   and (($services.wachter.networks | keys | sort) == ["schloss-net", "wachter-internal"])
   and (($services."wachter-agent".networks | keys) == ["wachter-internal"])
   and (.networks."wachter-internal".internal == true)
+  and ($services."wachter-agent".group_add == [$docker_gid])
+  and ($services.wachter.group_add == null)
 
   # Only stateless browser containers are restartable. Critical=false is
   # explicit on each one because the agent gives critical=true precedence.
