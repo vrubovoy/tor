@@ -1,9 +1,11 @@
 services:
   kuvert-backend:
+    profiles: [kuvert]
     labels:
       hof.wachter.critical: "true"
 
   kuvert-frontend:
+    profiles: [kuvert]
     labels:
       hof.wachter.restartable: "true"
       hof.wachter.critical: "false"

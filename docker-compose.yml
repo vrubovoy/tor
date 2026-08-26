@@ -40,7 +40,9 @@ include:
   - path:
       - ../herold/docker-compose.yml
       - ./compose/herold.override.yml
-  - path: ../wachter/docker-compose.yml
+  - path:
+      - ../wachter/docker-compose.yml
+      - ./compose/wachter.override.yml
 
 services:
   gateway:

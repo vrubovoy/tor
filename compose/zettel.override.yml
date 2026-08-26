@@ -1,9 +1,11 @@
 services:
   zettel-backend:
+    profiles: [zettel]
     labels:
       hof.wachter.critical: "true"
 
   zettel-frontend:
+    profiles: [zettel]
     labels:
       hof.wachter.restartable: "true"
       hof.wachter.critical: "false"

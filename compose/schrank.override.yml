@@ -1,9 +1,11 @@
 services:
   schrank-backend:
+    profiles: [schrank]
     labels:
       hof.wachter.critical: "true"
 
   schrank-frontend:
+    profiles: [schrank]
     labels:
       hof.wachter.restartable: "true"
       hof.wachter.critical: "false"

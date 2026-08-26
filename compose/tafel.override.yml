@@ -1,9 +1,11 @@
 services:
   tafel-backend:
+    profiles: [tafel]
     labels:
       hof.wachter.critical: "true"
 
   tafel-frontend:
+    profiles: [tafel]
     labels:
       hof.wachter.restartable: "true"
       hof.wachter.critical: "false"

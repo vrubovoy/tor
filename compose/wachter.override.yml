@@ -1,0 +1,6 @@
+services:
+  wachter:
+    profiles: [wachter]
+
+  wachter-agent:
+    profiles: [wachter]
