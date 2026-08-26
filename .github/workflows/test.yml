@@ -126,6 +126,10 @@ jobs:
         working-directory: tor
         run: docker compose build herold-backend herold-frontend
 
+      - name: Smoke-test runtime frontend configuration
+        working-directory: tor
+        run: sh test/validate-runtime-config.sh
+
       - name: Build Wächter images
         working-directory: tor
         run: docker compose build wachter wachter-agent
