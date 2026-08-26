@@ -123,27 +123,31 @@ jq -e --arg glocke_url "$GLOCKE_URL" \
   and ($services.schlussel.environment.GLOCKE_TO_SCHLUSSEL_HMAC_KEY_ID == $services."glocke-backend".environment.GLOCKE_TO_SCHLUSSEL_HMAC_KEY_ID)
   and ($services.schlussel.environment.GLOCKE_TO_SCHLUSSEL_HMAC_SECRET == $services."glocke-backend".environment.GLOCKE_TO_SCHLUSSEL_HMAC_SECRET)
   and ($services."glocke-backend".environment.ALLOWED_ORIGINS == ([
-    $services."glocke-frontend".build.args.VITE_SCHLOSS_URL,
-    $services."glocke-frontend".build.args.VITE_SCHLUSSEL_URL,
-    $services.schloss.build.args.VITE_KUVERT_URL,
-    $services.schloss.build.args.VITE_TAFEL_URL,
-    $services.schloss.build.args.VITE_ZETTEL_URL,
-    $services.schloss.build.args.VITE_GLOCKE_URL,
-    $services.schloss.build.args.VITE_SCHRANK_URL,
-    $services.schloss.build.args.VITE_HEROLD_URL
+    $services."glocke-frontend".environment.SCHLOSS_URL,
+    $services."glocke-frontend".environment.SCHLUSSEL_WEB_URL,
+    $services.schloss.environment.KUVERT_URL,
+    $services.schloss.environment.TAFEL_URL,
+    $services.schloss.environment.ZETTEL_URL,
+    $services.schloss.environment.GLOCKE_URL,
+    $services.schloss.environment.SCHRANK_URL,
+    $services.schloss.environment.HEROLD_URL
   ] | join(",")))
   and ([
-    $services.schloss.build.args.VITE_GLOCKE_URL,
-    $services."schlussel-frontend".build.args.VITE_GLOCKE_URL,
-    $services."kuvert-frontend".build.args.VITE_GLOCKE_URL,
-    $services."tafel-frontend".build.args.VITE_GLOCKE_URL,
-    $services."zettel-frontend".build.args.VITE_GLOCKE_URL,
-    $services."schrank-frontend".build.args.VITE_GLOCKE_URL,
-    $services."herold-frontend".build.args.VITE_GLOCKE_URL
+    $services.schloss.environment.GLOCKE_URL,
+    $services."schlussel-frontend".environment.GLOCKE_URL,
+    $services."kuvert-frontend".environment.GLOCKE_URL,
+    $services."tafel-frontend".environment.GLOCKE_URL,
+    $services."zettel-frontend".environment.GLOCKE_URL,
+    $services."schrank-frontend".environment.GLOCKE_URL,
+    $services."herold-frontend".environment.GLOCKE_URL
   ] as $browser_glocke_urls
   | $browser_glocke_urls | all(. == $glocke_url))
-  and ($services.schloss.build.args.VITE_KUVERT_URL == $services."glocke-backend".environment.KUVERT_ORIGIN)
-  and ($services.schloss.build.args.VITE_TAFEL_URL == $services."glocke-backend".environment.TAFEL_ORIGIN)
+  and ($services.schloss.environment.KUVERT_URL == $services."glocke-backend".environment.KUVERT_ORIGIN)
+  and ($services.schloss.environment.TAFEL_URL == $services."glocke-backend".environment.TAFEL_ORIGIN)
+  and ([
+    "schloss", "schlussel-frontend", "kuvert-frontend", "tafel-frontend",
+    "zettel-frontend", "glocke-frontend", "schrank-frontend", "herold-frontend"
+  ] | all(. as $service | $services[$service].build.args == null))
 
   # Schlussel owns fixed internal registries for platform exports and account
   # deletion. Assert all targets, including the newer Schrank/Herold entries,
