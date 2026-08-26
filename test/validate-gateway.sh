@@ -62,9 +62,16 @@ test_upstreams() {
 		--config /etc/caddy/Caddyfile --adapter caddyfile >"$caddy_config"; then
 		return 1
 	fi
+	# This checks the Caddyfile's static hostname-to-upstream mapping, not
+	# which containers happen to be running - activate every optional
+	# profile so the comparison covers every app the Caddyfile routes to,
+	# the same set validate-compose.sh already exercises.
 	if ! docker compose --project-directory "$ROOT" \
 		--env-file "$ROOT/.env.example" \
-		--file "$ROOT/docker-compose.yml" config --format json \
+		--file "$ROOT/docker-compose.yml" \
+		--profile kuvert --profile tafel --profile zettel --profile glocke \
+		--profile schrank --profile herold --profile wachter \
+		config --format json \
 		>"$compose_config"; then
 		return 1
 	fi

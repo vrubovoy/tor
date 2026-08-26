@@ -31,6 +31,12 @@ WORKFLOW="$ROOT/.github/workflows/test.yml"
 FAILURES=0
 TEST_TMPDIR=$(mktemp -d)
 
+# Glocke and every frontend now carry a Compose profile - without
+# activating them, `docker compose config` omits those services entirely
+# rather than just leaving them unstarted, so glocke-backend wouldn't even
+# appear below to check its Browser Push environment against.
+PROFILE_FLAGS="--profile kuvert --profile tafel --profile zettel --profile glocke --profile schrank --profile herold --profile wachter"
+
 trap 'rm -rf "$TEST_TMPDIR"' EXIT INT TERM
 
 # Starts from the committed .env.example, drops any existing lines for the
@@ -56,11 +62,11 @@ test_enabled_mode() {
 		'GLOCKE_VAPID_PRIVATE_KEY=test-fixture-vapid-private-key' \
 		'GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS=fcm.googleapis.com,updates.push.services.mozilla.com,web.push.apple.com'
 
-	if ! docker compose --env-file "$variant" config --quiet; then
+	if ! docker compose --env-file "$variant" $PROFILE_FLAGS config --quiet; then
 		printf 'docker compose config --quiet failed for the enabled-mode fixture\n' >&2
 		return 1
 	fi
-	docker compose --env-file "$variant" config --format json >"$config"
+	docker compose --env-file "$variant" $PROFILE_FLAGS config --format json >"$config"
 
 	if ! jq -e '
 	  .services as $services
@@ -95,11 +101,11 @@ test_disabled_mode() {
 		'GLOCKE_VAPID_PRIVATE_KEY=' \
 		'GLOCKE_PUSH_ALLOWED_ENDPOINT_HOSTS='
 
-	if ! docker compose --env-file "$variant" config --quiet; then
+	if ! docker compose --env-file "$variant" $PROFILE_FLAGS config --quiet; then
 		printf 'docker compose config --quiet failed for the disabled-mode fixture (flag false, VAPID vars blank should still validate)\n' >&2
 		return 1
 	fi
-	docker compose --env-file "$variant" config --format json >"$config"
+	docker compose --env-file "$variant" $PROFILE_FLAGS config --format json >"$config"
 
 	if ! jq -e '
 	  .services as $services

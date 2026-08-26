@@ -74,12 +74,16 @@ fi
 
 node "$(dirname "$0")/validate-public-origin.mjs" "$GLOCKE_URL"
 
-if ! docker compose --env-file "$ENV_FILE" config --quiet; then
+if ! docker compose --env-file "$ENV_FILE" \
+	--profile kuvert --profile tafel --profile zettel --profile glocke \
+	--profile schrank --profile herold --profile wachter config --quiet; then
 	printf 'docker compose config --quiet failed for %s\n' "$ENV_FILE" >&2
 	exit 1
 fi
 
-docker compose --env-file "$ENV_FILE" config --format json >"$CONFIG"
+docker compose --env-file "$ENV_FILE" \
+	--profile kuvert --profile tafel --profile zettel --profile glocke \
+	--profile schrank --profile herold --profile wachter config --format json >"$CONFIG"
 
 jq -e --arg glocke_url "$GLOCKE_URL" \
   --arg vapid_enabled "$GLOCKE_BROWSER_PUSH_ENABLED" \
