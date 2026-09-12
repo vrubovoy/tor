@@ -5,9 +5,14 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       SCHLUSSEL_TO_GLOCKE_HMAC_SECRET: ci-only-producer-secret-at-least-32-bytes
       GLOCKE_TO_SCHLUSSEL_HMAC_SECRET: ci-only-recipient-secret-at-least-32-bytes
@@ -20,53 +25,53 @@ jobs:
       GLOCKE_VAPID_PRIVATE_KEY: buJ8MeuiDFugpvAMEPf3vgV_bz3tlNVECD0MoMgryUw
       HEROLD_CREDENTIAL_ENCRYPTION_KEY: ci-only-herold-credential-key-at-least-32-bytes
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: tor
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/schlussel
           path: schlussel
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/schloss
           path: schloss
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/kuvert
           path: kuvert
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/tafel
           path: tafel
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/zettel
           path: zettel
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/glocke
           path: glocke
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/schrank
           path: schrank
           submodules: recursive
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: zudaR107/herold
           path: herold
@@ -76,7 +81,7 @@ jobs:
       # account rename, so there's no zudaR107/wachter to redirect from
       # (unlike every checkout above, all of which predate the rename
       # and still resolve through GitHub's own username redirect).
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: vrubovoy/wachter
           path: wachter
